@@ -11,6 +11,7 @@ double supportPercentage;
 string inputFile;
 int supportNum;
 vector< vector<int> > transactions;
+vector< set<int> > transactionsSet;
 
 vector< vector< vector<int> > > candidateSet;
 vector< vector< vector<int> > > frequentSet;
@@ -30,6 +31,8 @@ void readfile()
             currTransactionInts.push_back(dummyInt);
         }
         transactions.push_back(currTransactionInts);
+        set<int> currTransactionIntsSet(currTransactionInts.begin(),currTransactionInts.end());
+        transactionsSet.push_back(currTransactionIntsSet);
     }
     infile.close();
 }
@@ -77,11 +80,13 @@ void makeCandidateSet()
         {
             int numNotEq=0;
             int diffInSecond;
+            int diffInFirst;
             for(int k=0;k<(frequentSetIndex+1);k++)
             {
                 if(frequentSet[frequentSetIndex][i][k]!=frequentSet[frequentSetIndex][j][k])
                 {
                     numNotEq+=1;
+                    diffInFirst=frequentSet[frequentSetIndex][i][k];
                     diffInSecond=frequentSet[frequentSetIndex][j][k];
                 }
                 if(numNotEq>1)
@@ -94,11 +99,41 @@ void makeCandidateSet()
                 vector<int> newElementinCandidateSet=frequentSet[frequentSetIndex][i];
                 newElementinCandidateSet.push_back(diffInSecond);
                 sort(newElementinCandidateSet.begin(),newElementinCandidateSet.end());
-                currCandidateSet.insert(newElementinCandidateSet);
+
+                //Do Pruning of currCandidateSet
+
+                vector<int> numbersToRemoveOneByOne;
+                for(int z=0;z<int(newElementinCandidateSet.size());z++)
+                {
+                    if(newElementinCandidateSet[z]!=diffInFirst && newElementinCandidateSet[z]!=diffInSecond)
+                    {
+                        numbersToRemoveOneByOne.push_back(newElementinCandidateSet[z]);
+                    }
+                }
+
+                set<int> newElementSet(newElementinCandidateSet.begin(),newElementinCandidateSet.end());
+
+                set< vector<int> > setOfLastFrequentSet(frequentSet[frequentSetIndex].begin(),frequentSet[frequentSetIndex].end());
+
+                bool pruned=false;
+                for(int z=0;z<int(numbersToRemoveOneByOne.size());z++)
+                {
+                    newElementSet.erase(numbersToRemoveOneByOne[z]);
+                    vector<int> subsetElement(newElementSet.begin(),newElementSet.end());
+                    if(setOfLastFrequentSet.find(subsetElement)==setOfLastFrequentSet.end())
+                    {
+                        pruned=true;
+                        break;
+                    }
+                    newElementSet.insert(numbersToRemoveOneByOne[z]);
+                }
+                if(!pruned)
+                {
+                    currCandidateSet.insert(newElementinCandidateSet);
+                }
             }
         }
     }
-    //TODO: Do Pruning of currCandidateSet
     //Set to Vector Conversion
     vector< vector <int> > currCandidateSetVector(currCandidateSet.size());
     copy(currCandidateSet.begin(), currCandidateSet.end(), currCandidateSetVector.begin());
@@ -116,9 +151,8 @@ void makeHigherLengthFrequentSets()
         makeCandidateSet();
         //Find count of each element of candidateSet[tempVar] by iterating through the transactions
         vector<int> candidateSetCount(int(candidateSet[tempVar].size()),0);
-        for(int i=0;i<int(transactions.size());i++)
+        for(int i=0;i<int(transactionsSet.size());i++)
         {
-            set<int> transactionSet(transactions[i].begin(),transactions[i].end());
             for(int j=0;j<int(candidateSet[tempVar].size());j++)
             {
                 //check if candidateSet[tempVar][j] is contained inside transactions[i]
@@ -126,7 +160,7 @@ void makeHigherLengthFrequentSets()
                 bool elemContained=true;
                 for(int k=0;k<candidateSet[tempVar][j].size();k++)
                 {
-                    if(transactionSet.find(candidateSet[tempVar][j][k])==transactionSet.end())
+                    if(transactionsSet[i].find(candidateSet[tempVar][j][k])==transactionsSet[i].end())
                     {
                         elemContained=false;
                         break;
@@ -183,7 +217,7 @@ void printFrequentSets()
 
 int main()
 {
-    supportPercentage=1;
+    supportPercentage=10;
     inputFile="retail.dat";
     readfile();
     double supportNumHelp=((supportPercentage*double(transactions.size()))/double(100.0));
@@ -191,7 +225,7 @@ int main()
     makeInitialCandidateandFrequentSet();
     makeHigherLengthFrequentSets();
     printFrequentSets();
-    DEBUG2(transactions.size());
-    DEBUG2(transactions[5].size());
+//    DEBUG2(transactions.size());
+//    DEBUG2(transactions[5].size());
     return 0;
 }
