@@ -199,7 +199,7 @@ void printFrequentSets()
         sort(frequentSet[i].begin(),frequentSet[i].end());
     }
     ofstream outfile;
-    outfile.open ("CS5140281.txt");
+    outfile.open ("2014CS50281.txt");
     for(int i=0;i<int(frequentSet.size());i++)
     {
         for(int j=0;j<int(frequentSet[i].size());j++)
