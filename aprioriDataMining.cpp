@@ -199,7 +199,7 @@ void printFrequentSets()
         sort(frequentSet[i].begin(),frequentSet[i].end());
     }
     ofstream outfile;
-    outfile.open ("output.txt");
+    outfile.open ("CS5140281.txt");
     for(int i=0;i<int(frequentSet.size());i++)
     {
         for(int j=0;j<int(frequentSet[i].size());j++)
@@ -215,17 +215,18 @@ void printFrequentSets()
     outfile.close();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    supportPercentage=10;
-    inputFile="retail.dat";
+    string inputFileHelp(argv[1]);
+    inputFile=inputFileHelp;
+    supportPercentage=atof(argv[2]);
     readfile();
     double supportNumHelp=((supportPercentage*double(transactions.size()))/double(100.0));
     supportNum=int(ceil(supportNumHelp));
     makeInitialCandidateandFrequentSet();
     makeHigherLengthFrequentSets();
     printFrequentSets();
-//    DEBUG2(transactions.size());
-//    DEBUG2(transactions[5].size());
+    DEBUG2(inputFile);
+    DEBUG2(supportPercentage);
     return 0;
 }
